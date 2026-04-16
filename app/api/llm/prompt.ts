@@ -1,77 +1,6 @@
-"use client";
-import { useState, useEffect, useRef } from "react";
-import "@excalidraw/excalidraw/index.css";
-import data from "../data/diagram.json";
-import { govern_x, govern_y } from "../data/motion/ball.ts";
-import dynamic from 'next/dynamic'
-
-const Excalidraw = dynamic(
-  () => import('@excalidraw/excalidraw').then(mod => mod.Excalidraw),
-  { ssr: false }
-)
-import styles from "./anim.module.css"
-
-;
-
-export default function Anim() {
-    const [api, setApi] = useState<any>(null);
-    // mutable copy of elements — this is what gets updated each frame
-    const elementsRef = useRef<any[]>(JSON.parse(JSON.stringify(data.elements)));
-
-    // Initialize scene once
-    useEffect(() => {
-        if (!api) return;
-        import("@excalidraw/excalidraw").then(({ convertToExcalidrawElements }) => {
-            const elements = convertToExcalidrawElements(elementsRef.current);
-            api.updateScene({ elements });
-        });
-    }, [api]);
-
-    // Animate — read AND write from elementsRef each tick
-    useEffect(() => {
-        if (!api) return;
-        const interval = setInterval(() => {
-            import("@excalidraw/excalidraw").then(({ convertToExcalidrawElements }) => {
-                elementsRef.current = elementsRef.current.map(item => {
-                    if (item.obj_type === "non_stationary") {
-                        return {
-                            ...item,
-                            x: govern_x(item.x),
-                            y: govern_y(item.y),
-                        };
-                    }
-                    return item;
-                });
-                const elements = convertToExcalidrawElements(elementsRef.current);
-                api.updateScene({ elements });
-            });
-        }, 6);
-
-        return () => clearInterval(interval);
-    }, [api]);
-
+export const gen_prompt = (USER_CONCEPT: string): string =>{
     return (
-        <div style={{ height: "100vh" }}>
-            <style>{`.App-bottom-bar { display: none !important; }`}</style>
-            <Excalidraw
-                initialData={{ appState: { viewModeEnabled: true } }}
-                theme="dark"
-                excalidrawAPI={(api) => setApi(api)}
-                renderBottomRightUI={() => null}
-                UIOptions={{
-                    canvasActions: {
-                        export: false,
-                        loadScene: false,
-                        saveToActiveFile: false,
-                        toggleTheme: false,
-                        saveAsImage: false,
-                    }
-                }}
-            />
-        </div>
-    );
-}
-/*
+        `
     You are an expert Excalidraw diagram generator with physics-based animation. Your sole output is valid JSON — no markdown, no explanation, no code fences.
 
 OUTPUT FORMAT (strict):
@@ -218,6 +147,19 @@ TYPOGRAPHY:
 - Labels:       fontSize 13–14, fontFamily 1
 - Formulas:     fontSize 13, fontFamily 3 (monospace)
 
+SIMPLICITY CONSTRAINTS (VERY IMPORTANT):
+- Keep the diagram as SIMPLE as possible
+- Do NOT include unnecessary objects, decorations, or extra physics components
+- Prefer a single clear system over multiple interacting systems
+- Avoid complex multi-body interactions unless absolutely required
+- Ensure the animation logic is EASY to understand and implement
+- The diagram should be simple enough that another LLM can easily interpret and animate it
+- Prioritize clarity over realism if there is a tradeoff
+- Use the minimum number of elements needed to explain the concept
+- Keep govern_x and govern_y functions straightforward and readable
+- Avoid over-complicated math or chained dependencies between elements
+- Each moving element should have independent, clean, and understandable motion logic
+
 DIAGRAM QUALITY:
 - roughness MUST be 0 everywhere
 - strokeWidth 2 for primary elements, 1 for secondary/labels, 3 for ground/emphasis
@@ -228,9 +170,13 @@ DIAGRAM QUALITY:
 
 ===========================
 CONCEPT TO DIAGRAM:
-===========================
-[USER CONCEPT HERE — e.g. "Simple Pendulum", "Projectile Motion", "Spring-Mass System", "Circular Orbit", "Wave Interference", "RC Circuit", "Dijkstra's Algorithm"]
-
+=========================== 
+${USER_CONCEPT}
 Generate a complete labeled Excalidraw scene with physically accurate animation for the above concept. Every moving part must have correct govern_x / govern_y physics. Every static part must have obj_type: "stationary". Return ONLY the JSON. Nothing else.
-    
-     */
+ 
+
+
+
+  `)
+}
+

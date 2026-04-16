@@ -1,0 +1,6 @@
+:global(.excalidraw .main-menu-trigger) {
+  display: none !important;
+}
+:global(.excalidraw .App-bottom-bar) {
+  display: none !important;
+}

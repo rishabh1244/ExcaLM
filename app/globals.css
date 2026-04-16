@@ -1,5 +1,13 @@
 @import "tailwindcss";
-
+.excalidraw .App-bottom-bar {
+  display: none !important;
+}
+div.excalidraw div.App-bottom-bar {
+  display: none !important;
+}
+.excalidraw .main-menu-trigger {
+  display: none !important;
+}
 :root {
   --background: #ffffff;
   --foreground: #171717;
