@@ -9,26 +9,30 @@ const Excalidraw = dynamic(
     { ssr: false }
 );
 
-export default function Drawing() {
+interface DrawingProps {
+  url: string;
+}
+
+export default function Drawing({url}: DrawingProps) {
     const [api, setApi] = useState<any>(null);
     const [diagram, setDiagram] = useState<any>(null);
     const elementsRef = useRef<any[]>([]);
 
     // Fetch diagram.json from API route
     useEffect(() => {
-        const load = () => {
-            fetch("/api/diagram")
-                .then(r => r.ok ? r.json() : null)
-                .then(data => {
-                    if (!data) return;
-                    setDiagram(data);
-                    elementsRef.current = JSON.parse(JSON.stringify(data.elements));
-                });
-        };
-        load(); // initial load
-        window.addEventListener("diagram-updated", load); // reload on new prompt
-        return () => window.removeEventListener("diagram-updated", load);
-    }, []);
+            const load = () => {
+                fetch(url)
+                    .then(r => r.ok ? r.json() : null)
+                    .then(data => {
+                        if (!data) return;
+                        setDiagram(data);
+                        elementsRef.current = JSON.parse(JSON.stringify(data.elements));
+                    });
+            };
+            load(); // initial load
+            window.addEventListener("diagram-updated", load); // reload on new prompt
+            return () => window.removeEventListener("diagram-updated", load);
+            }, []);
 
     // Initialize scene once api and diagram are both ready
     useEffect(() => {

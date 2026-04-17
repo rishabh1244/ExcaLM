@@ -32,16 +32,15 @@ export async function POST(request) {
         raw = data.choices[0].message.content;
     }
     catch{
-        console.log ("Model is paid")
-        ;
+        console.log ("Model is paid")        ;
     }
 
     const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
 
     const diagram = JSON.parse(cleaned); // now it's a real object
-
+    console.log(diagram.type);
     fs.writeFileSync(filePath, JSON.stringify(diagram, null, 2), 'utf-8') // ✅ write the diagram
-
+    console.log("diagram written");
     return NextResponse.json({ diagram });
 }
 

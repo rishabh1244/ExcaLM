@@ -1,25 +1,9 @@
+"use client"
 
-"use client";
-import "@excalidraw/excalidraw/index.css";
-import LLM from "./LLM/llm";
-import styles from "./page.module.css"
-import Drawing from "./drawing/drawing";
-
+import Landing from "./landing_page/Landing"
 export default function App() {
     return (
-        <>
-            <div className={styles.content}>
-                <div className={styles.anim}>
+        <Landing />
 
-                <Drawing />
-                </div>
-                <div className={styles.llm}>
-
-                    <LLM />
-                </div>
-            </div>
-        </>
-    );
+    )
 }
-
-
