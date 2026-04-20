@@ -5,7 +5,7 @@ import path from "path";
 import { gen_prompt } from "./prompt";
 export async function POST(request) {
     const { USER_CONCEPT ,LLM } = await request.json();
-    
+    console.log ("using model :" , LLM); 
     console.log("recived ", USER_CONCEPT);
 
     const prompt = gen_prompt(USER_CONCEPT);
@@ -16,11 +16,11 @@ export async function POST(request) {
             "Authorization": `Bearer ${process.env.API_KEY}`,
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-            "model": LLM,
-            "messages": [
-                { "role": "user", "content": prompt }
-            ]
+            body: JSON.stringify({
+                "model": LLM,
+                "messages": [
+                    { "role": "user", "content": prompt }
+                ]
         })
     });
     const filePath = path.join(process.cwd(), 'app', 'data', 'diagram.json')
