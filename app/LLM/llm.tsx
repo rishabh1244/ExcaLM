@@ -1,65 +1,102 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useRef, useEffect } from "react";
 import styles from "./llm.module.css";
 
+const MODELS = [
+  { value: "google/gemini-2.0-flash-001", label: "gemini-2.0-flash" },
+  { value: "qwen/qwen3-coder:free", label: "qwen3-coder" },
+  { value: "nvidia/nemotron-3-super-120b-a12b:free", label: "nemotron" },
+  { value: "z-ai/glm-4.5-air:free", label: "glm-4.5" },
+];
 
 export default function LLM() {
-    const [prompt, setPrompt] = useState("");
-    const [LLM, SelectLLM] = useState("");
+  const [prompt, setPrompt] = useState("");
+  const [llm, setLlm] = useState(MODELS[0].value);
+  const [loading, setLoading] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    const handleLLM = (e) => {
-        console.log(e.target.value);
-        SelectLLM(e.target.value);
+  // Auto-resize textarea
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [prompt]);
+
+  const handleSubmit = async () => {
+    if (!prompt.trim() || loading) return;
+    setLoading(true);
+    try {
+      await fetch("/api/llm", {
+        method: "POST",
+        body: JSON.stringify({ USER_CONCEPT: prompt, LLM: llm }),
+      });
+      window.dispatchEvent(new Event("diagram-updated"));
+      setPrompt("");
+    } finally {
+      setLoading(false);
     }
-    const handleSubmit = () => {
-        if (!prompt.trim()) return;
+  };
 
-        async function sendReq() {
+  return (
+    <div className={styles.floatingBar}>
+      <div className={styles.inputWrapper}>
 
-            const output = await fetch('/api/llm', {
-                method: "POST",
-                body: JSON.stringify({
-                    "USER_CONCEPT": prompt,
-                    "LLM" : LLM
-                })
-            })
-            const data = await output.json();
-            console.log(data);
-            window.dispatchEvent(new Event("diagram-updated"));
+        {/* Textarea — grows with content */}
+        <textarea
+          ref={textareaRef}
+          className={styles.textarea}
+          placeholder="Describe a concept or diagram…"
+          value={prompt}
+          rows={1}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+        />
 
+        {/* Bottom row: model selector + send */}
+        <div className={styles.bottomRow}>
+          <select
+            className={styles.modelSelect}
+            value={llm}
+            onChange={(e) => setLlm(e.target.value)}
+          >
+            {MODELS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
 
-        }
-        sendReq();
-        setPrompt("");
-    };
-
-    return (
-        <div className={styles.sidebox}>
-            <div className={styles.input_bar}>
-                <textarea
-                    placeholder="please enter your prompt"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSubmit();
-                        }
-                    }}
-                />
-                <button className={styles.submit_button} onClick={handleSubmit}>
-                    Send
-                </button>
-
-                <select name="LLMS" id="llms" onClick={handleLLM}>
-                    <option value="google/gemini-2.0-flash-001">gemini-2.0-flash-001</option>
-                    <option value="qwen/qwen3-coder:free">qwen3-coder</option>
-                    <option value="nvidia/nemotron-3-super-120b-a12b:free">nemotron</option>
-                    <option value="z-ai/glm-4.5-air:free">glm</option>
-                </select>
-
-            </div>
+          <button
+            className={`${styles.sendBtn} ${loading ? styles.loading : ""}`}
+            onClick={handleSubmit}
+            disabled={!prompt.trim() || loading}
+            aria-label="Send"
+          >
+            {loading ? (
+              <span className={styles.spinner} />
+            ) : (
+              <SendIcon />
+            )}
+          </button>
         </div>
-    );
+
+      </div>
+    </div>
+  );
 }
 
+function SendIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </svg>
+  );
+}

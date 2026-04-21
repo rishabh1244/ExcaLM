@@ -1,4 +1,4 @@
-import Navbar from "./navbar";
+import Navbar from "../navbar/navbar";
 import styles from "./landing.module.css";
 import Canvas from "../canvas"; 
 export default function Landing() {
